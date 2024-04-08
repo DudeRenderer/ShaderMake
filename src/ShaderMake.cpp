@@ -137,6 +137,7 @@ struct ConfigLine
     const char* outputSuffix = nullptr;
 
     uint32_t optimizationLevel = USE_GLOBAL_OPTIMIZATION_LEVEL;
+    bool bEmbedPdb = false;
 
     bool Parse(int32_t argc, const char** argv);
 };
@@ -780,11 +781,12 @@ bool ConfigLine::Parse(int32_t argc, const char** argv)
         OPT_STRING('o', "output", &outputDir, "(Optional) output subdirectory", nullptr, 0, 0),
         OPT_INTEGER('O', "optimization", &optimizationLevel, "(Optional) optimization level", nullptr, 0, 0),
         OPT_STRING(0, "outputSuffix", &outputSuffix, "(Optional) Suffix to add before extension after filename", nullptr, 0, 0),
+        OPT_BOOLEAN('e',"embedPDB", &embedPDB, "(Optinal) Embed PDB with the shader binary", nullptr, 0, 0),
         OPT_END(),
     };
 
     static const char* usages[] = {
-        "path/to/shader -T profile [-E entry -O{0|1|2|3} -o \"output/subdirectory\" --outputSuffix \"suffix\" -D DEF1={0,1} -D DEF2={0,1,2} -D DEF3 ...]",
+        "path/to/shader -T profile [-E entry -O{0|1|2|3} -o \"output/subdirectory\" --outputSuffix \"suffix\" -e -D DEF1={0,1} -D DEF2={0,1,2} -D DEF3 ...]",
         nullptr
     };
 
@@ -1697,6 +1699,10 @@ bool ProcessConfigLine(uint32_t lineIndex, const string& line, const fs::file_ti
     string profile = configLine.profile;
     if (g_Options.platform == DXBC && (profile == "lib" || profile == "ms" || profile == "as"))
         return true;
+
+    // Enable embedPDB
+    if (configLine.bEmbedPdb)
+        g_Options.embedPdb = true;
 
     // Concatenate define strings, i.e. to get something, like: "A=1 B=0 C"
     string combinedDefines = "";
